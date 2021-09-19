@@ -1,0 +1,22 @@
+{
+    "version": 1,
+    "backendName": "ontap_san",
+    "storageDriverName": "ontap-san-economy",
+    "managementLIF": "192.168.248.50",
+    "svm": "w6017iasta03_k8si_04",
+    "igroupName": "trident_k8si_04",
+    "storagePrefix": "k8si_04_",
+    "username": "",
+    "limitVolumeSize": "16300g",
+    "password": "",
+    "defaults": {
+        "spaceAllocation": "true",
+        "spaceReserve": "none",
+        "snapshotPolicy": "none",
+        "snapshotReserve": "0",
+        "snapshotDir": "false",
+        "unixPermissions": "777",
+        "securityStyle": "unix",
+        "splitOnClone": "false"
+    }
+}

@@ -1,0 +1,49 @@
+kind: NodeNetworkConfigurationPolicy
+apiVersion: nmstate.io/v1alpha1
+metadata:
+  name: vlan-iscsi-policy-configurator-mxq10315t4
+spec:
+  nodeSelector:
+    kubernetes.io/hostname: mxq10315t4
+  desiredState:
+    interfaces:
+      - description: VLAN using bond1
+        ipv4:
+          address:
+            - ip: 192.168.249.157
+              prefix-length: 23
+          dhcp: false
+          enabled: true
+        ipv6:
+          autoconf: false
+          dhcp: false
+          enabled: false
+        lldp:
+          enabled: false
+        mtu: 9000
+        name: bond1.775
+        state: up
+        type: vlan
+        vlan:
+          base-iface: bond1
+          id: 775
+      - description: VLAN using bond0
+        ipv4:
+          address:
+            - ip: 192.168.249.57
+              prefix-length: 23
+          dhcp: false
+          enabled: true
+        ipv6:
+          autoconf: false
+          dhcp: false
+          enabled: false
+        lldp:
+          enabled: false
+        mtu: 9000
+        name: bond0.775
+        state: up
+        type: vlan
+        vlan:
+          base-iface: bond0
+          id: 775
