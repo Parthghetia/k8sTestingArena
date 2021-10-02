@@ -24,4 +24,4 @@ htpasswd -b ./htpasswd parth parth
 
 oc set data secret/localusers --from-file ./htpasswd
 
-#to set the secret that you editted earlier into the cluster
+#to set the old secret that you editted earlier into the cluster
