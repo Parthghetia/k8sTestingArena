@@ -10,5 +10,8 @@ Add any subcommand to terraform -help to learn more about what it does and avail
 
 ```
 $ terraform -help plan
-
+```
+Then install the autocomplete package.
+```
+$ terraform -install-autocomplete
 ```
