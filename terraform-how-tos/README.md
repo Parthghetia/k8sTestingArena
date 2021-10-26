@@ -15,3 +15,4 @@ Then install the autocomplete package.
 ```
 $ terraform -install-autocomplete
 ```
+Continued Here: https://github.com/Parthghetia/k8sTestingArena/blob/master/terraform-how-tos/Terraform-basics.md
