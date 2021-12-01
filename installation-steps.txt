@@ -1,0 +1,141 @@
+EKS Anywhere
+
+-Install Laptop requirements (MacOS or Linux - No Windows)
+
+https://anywhere.eks.amazonaws.com/docs/getting-started/install/
+docker
+govc
+kubectl
+git
+EKS Anywhere cli
+eskctl - https://eksctl.io
+
+eksctl anywhere version
+
+https://anywhere.eks.amazonaws.com/docs/concepts/clusterworkflow/
+a Bootstrap cluster is built locally in Docker for install
+
+-VMware\EKS Anywhere requirements
+
+have DHCP server on network with range of IPs
+have DNS server and add entries for vCenter, ESXi hosts (2nd entry for VMotion), TrueNAS, and EKS Anywhere VIP
+reserve a range of IPs for MetalLB
+install vCenter
+install 2 ESXi hosts
+install TrueNAS VM for iSCSI storage (create at least two volumes for VMware HA heartbeat)
+create Datacenter in vCenter
+create Cluster in vCenter with HA and DRS enabled
+add ESXI hosts to vCenter
+create 2nd VMkernel adapter for VMotion
+add iSCSI software adapter on both ESXI hosts
+discover TrueNAS server on both ESXI hosts
+rescan adapter on both ESXI hosts
+create VMFS datastores using TrueNAS volumes on 1st ESXi hosts
+make sure NTP is configured and time is in sync with laptop running install from also
+put both ESXi hosts in Maintenance Mode
+move both ESXi hosts to vCenter Cluster
+run Cluster configuration Quickstart wizard to configure HA & DRS (opt out of Network config)
+
+
+
+
+https://anywhere.eks.amazonaws.com/docs/reference/clusterspec/vsphere/
+create resource pool "Resources" under Cluster
+create resource pool "eksa03" under Resources pool Resources
+create VM folder "Templates"
+
+download AWS Bottlerocket OVA
+https://anywhere.eks.amazonaws.com/docs/reference/artifacts/
+
+https://anywhere.eks.amazonaws.com/docs/reference/vsphere/vsphere-ovas/
+import bottlerocket ova
+create snapshot of bottlerocket VMware
+convert vm to template
+add tags to template - os:bottlerocket and eksdRelease:kubernetes-1-21-eks-5 (install will not work without)
+
+-Configure GitHub repo 
+create eksa repo (repo needs to not have clusters/$CLUSTER_NAME folder path yet)
+create GitHub token
+https://github.com/settings/tokens/new
+
+
+-ENV Variables to set
+
+export CLUSTER_NAME=eksa
+export EKSA_VSPHERE_USERNAME='someuser'
+export EKSA_VSPHERE_PASSWORD='somepassword'
+export EKSA_GITHUB_TOKEN=ghp_MyValidPersonalAccessTokenWithRepoPermissions
+
+-Set up config file
+
+https://anywhere.eks.amazonaws.com/docs/getting-started/production-environment/
+
+eksctl anywhere generate clusterconfig $CLUSTER_NAME \
+   --provider vsphere > eksa-cluster.yaml
+
+edit eksa-cluster.yaml with VMware values
+
+-Add GitOps values to cluster config
+
+https://anywhere.eks.amazonaws.com/docs/tasks/cluster/cluster-flux/
+
+-Run EKS Anywhere install
+
+eksctl anywhere create cluster -f eksa-cluster.yaml
+
+if you need to clean up previous bootstrap config 
+
+eksctl anywhere create cluster -f eksa-cluster.yaml --force-cleanup
+
+(does not always work - manual removal can be required)
+
+docker ps 
+docker container stop <container id>
+docker container ls -a 
+docker container rm <container id>
+
+-Set KUBECONFIG
+
+export KUBECONFIG=${PWD}/${CLUSTER_NAME}/${CLUSTER_NAME}-eks-a-cluster.kubeconfig
+kubectl get nodes
+
+
+
+
+
+-Add Load Balancer
+
+https://anywhere.eks.amazonaws.com/docs/tasks/workload/loadbalance/metallb/
+https://metallb.universe.tf/installation/
+
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.3/manifests/namespace.yaml
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.10.3/manifests/metallb.yaml
+
+https://metallb.universe.tf/configuration/
+
+kubectl apply -f eksa03-metallb-configmap.yaml
+
+
+-Add EKS Anywhere test app
+
+kubectl apply -f "https://anywhere.eks.amazonaws.com/manifests/hello-eks-a.yaml"
+(it seems to take awhile to successfully deploy)
+
+
+-Add 2nd test app
+
+https://williamlam.com/2020/06/interesting-kubernetes-application-demos.html
+kubectl create ns yelb
+kubectl apply -f https://raw.githubusercontent.com/lamw/vmware-k8s-app-demo/master/yelb.yaml
+
+-Run through the Gloo workshops
+
+https://workshops.solo.io/gloo-workshops/
+
+
+-Add persistent storage
+
+https://docs.portworx.com/portworx-install-with-kubernetes/on-premise/aws/eks-anywhere/portworx-vsphere-eks-anywhere/
+
+VMware CSI
+https://tanzu.vmware.com/content/blog/a-deep-dive-into-the-kubernetes-vsphere-csi-driver-with-tkgi-and-tkg
