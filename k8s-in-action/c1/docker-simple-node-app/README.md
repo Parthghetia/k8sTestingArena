@@ -85,3 +85,52 @@ docker inspect kubia-container
                     }
                 ].............
 ```
+
+You can go into the container and check stuff as below
+```
+docker exec -it kubia-container bash 
+```
+The -it option is shorthand for two options:
+-i, which makes sure STDIN is kept open. You need this for entering com- mands into the shell.
+-t, which allocates a pseudo terminal (TTY).
+
+STUFF TO CHECK AFTER
+==================
+Listing processes from inside a container
+```
+root@662c4bac66f8:/# ls
+app.js  bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+root@662c4bac66f8:/# ps aux
+USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+root         1  0.0  1.2 813608 25832 ?        Ssl  02:11   0:00 node app.js
+root        13  0.0  0.1  20252  3216 pts/0    Ss   02:18   0:00 bash
+root        21  0.0  0.0  17508  2028 pts/0    R+   02:19   0:00 ps aux
+```
+If you now open another terminal and list the processes on the host OS itself, you will, among all other host processes, also see the processes running in the container.
+```
+ps aux | grep app.js
+pa6105074        39126   0.0  0.0  4399480    816 s002  R+    9:21PM   0:00.00 grep --color=auto --exclude-dir=.bzr --exclude-dir=CVS --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=.idea --exclude-dir=.tox app.js
+```
+This proves that processes running in the container are running in the host OS. If you have a keen eye, you may have noticed that the processes have different IDs inside the container vs. on the host. The container is using its own PID Linux namespace and has a completely isolated process tree, with its own sequence of numbers.
+
+
+
+You then need to stop the container using
+```
+docker stop kubia-container
+```
+Stopping itself is not enough. You can still see the stuff when you do docker ps -a
+
+You need to remove the container truly using
+
+```
+docker rm kubia-container
+```
+Best command to remove them all stopped containers
+
+```
+docker container prune
+```
+
+PUSHING AN IMAGE TO DOCKER REGISTRY OR ANY OTHER REGISTRIES
+================
