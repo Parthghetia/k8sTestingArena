@@ -106,38 +106,8 @@ A great use of annotations is adding descriptions for each pod or other API obje
 #### Tip
 TIP To quickly switch to a different namespace, you can set up the following alias: alias kcd='kubectl config set-context $(kubectl config current- context) --namespace '. You can then switch between namespaces using kcd some-namespace.
 
-### Understanding the contents of a Kubeconfig file
-
-Understanding the contents of the kubeconfig file
-An example config file is shown in the following listing.
-```yaml
-apiVersion: v1
-clusters:
-- cluster:
-    certificate-authority: /home/luksa/.minikube/ca.crt
-    server: https://192.168.99.100:8443
-  name: minikube
-Contains information about a Kubernetes cluster
- contexts:
-- context:
-    cluster: minikube
-    user: minikube
-    namespace: default
-  name: minikube
-current-context: minikube
-kind: Config
-preferences: {}
-users:
-- name: minikube
-Defines a kubectl context
-The current context kubectl uses
-    user:
-    client-certificate: /home/luksa/.minikube/apiserver.crt
-    client-key: /home/luksa/.minikube/apiserver.key
-The kubeconfig file consists of four sections:
-■ A list of clusters
-■ A list of users
-■ A list of contexts
-■ The name of the current context
-Contains a user’s credentials
-
+### Liveness Probes
+Kubernetes can probe a container using one of the three mechanisms:
+- An HTTP GET probe performs an HTTP GET request on the container’s IP address, a port and  path you specify. If the probe receives a response, and the response code doesn’t represent an error (in other words, if the HTTP response code is 2xx or 3xx), the probe is considered successful. If the server returns an error response code or if it doesn’t respond at all, the probe is considered a fail- ure and the container will be restarted as a result.
+- A TCP Socket probe tries to open a TCP connection to the specified port of the container. If the connection is established successfully, the probe is successful. Otherwise, the container is restarted.
+- An Exec probe executes an arbitrary command inside the container and checks the command’s exit status code. If the status code is 0, the probe is successful. All other codes are considered failures.
