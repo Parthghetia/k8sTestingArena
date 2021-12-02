@@ -94,7 +94,7 @@ The -it option is shorthand for two options:
 -i, which makes sure STDIN is kept open. You need this for entering com- mands into the shell.
 -t, which allocates a pseudo terminal (TTY).
 
-STUFF TO CHECK AFTER
+Stuff to check after
 ==================
 Listing processes from inside a container
 ```
@@ -132,5 +132,23 @@ Best command to remove them all stopped containers
 docker container prune
 ```
 
-PUSHING AN IMAGE TO DOCKER REGISTRY OR ANY OTHER REGISTRIES
+Pushing an image to the docker registry or any other registries
 ================
+You need to re-tag your image according to docker hub rules
+```
+docker tag kubia parthghetia/kubia
+```
+Do a docker images and you'll see them both with the same id
+```
+docker images | grep kubia 
+kubia                                                                 latest                                                  b8f13909a40d   47 minutes ago   660MB
+parthghetia/kubia                                                     latest                                                  b8f13909a40d   47 minutes ago   660MB
+```
+Go ahead and do docker login
+Then docker push parthghetia/kubia
+
+That's it. Your image should be now publicly available, Which you can get to using
+
+```
+docker run -p 8080:8080 -d parthghetia/kubia
+```
