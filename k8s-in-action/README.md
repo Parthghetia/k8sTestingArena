@@ -111,3 +111,45 @@ Kubernetes can probe a container using one of the three mechanisms:
 - An HTTP GET probe performs an HTTP GET request on the container’s IP address, a port and  path you specify. If the probe receives a response, and the response code doesn’t represent an error (in other words, if the HTTP response code is 2xx or 3xx), the probe is considered successful. If the server returns an error response code or if it doesn’t respond at all, the probe is considered a fail- ure and the container will be restarted as a result.
 - A TCP Socket probe tries to open a TCP connection to the specified port of the container. If the connection is established successfully, the probe is successful. Otherwise, the container is restarted.
 - An Exec probe executes an arbitrary command inside the container and checks the command’s exit status code. If the status code is 0, the probe is successful. All other codes are considered failures.
+
+#### Breaking down a liveness probe restart
+
+```
+kdscr po kubia-unhealthy | grep -i exit
+      Exit Code:    137
+```
+The exit code was 137, which has a special meaning—it denotes that the process was terminated by an external signal. The number 137 is a sum of two numbers: 128+x, where x is the signal number sent to the process that caused it to ter- minate. In the example, x equals 9, which is the number of the SIGKILL signal, meaning the process was killed forcibly.
+
+
+```
+kdscr po kubia-unhealthy | grep -i Liveness
+    Liveness:     http-get http://:8080/ delay=0s timeout=1s period=10s #success=1 #failure=3
+  Normal   Killing      24m (x3 over 27m)     kubelet            Container kubia-unhealthy failed liveness probe, will be restarted
+  Warning  Unhealthy    3m56s (x28 over 28m)  kubelet            Liveness probe failed: HTTP probe failed with statuscode: 500
+```
+Beside the liveness probe options you specified explicitly, you can also see additional properties, such as delay, timeout, period, and so on. The delay=0s part shows that the probing begins immediately after the container is started. The timeout is set to only 1 second, so the container must return a response in 1 second or the probe is counted as failed. The container is probed every 10 seconds (period=10s) and the container is restarted after the probe fails three consecutive times (#failure=3).
+These additional parameters can be customized when defining the probe. For example, to set the initial delay, add the initialDelaySeconds property to the liveness probe as shown below:
+```yaml
+   livenessProbe:
+    httpGet:
+      path: /
+      port: 8080
+    initialDelaySeconds: 15
+```
+If you don’t set the initial delay, the prober will start probing the container as soon as it starts, which usually leads to the probe failing, because the app isn’t ready to start receiving requests. If the number of failures exceeds the failure threshold, the con- tainer is restarted before it’s even able to start responding to requests properly.
+
+I’ve seen this on many occasions and users were confused why their container was being restarted. But if they’d used kubectl describe, they’d have seen that the container terminated with exit code 137 or 143, telling them that the pod was terminated externally. Additionally, the listing of the pod’s events would show that the container was killed because of a failed liveness probe. If you see this happening at pod startup, it’s because you failed to set initialDelaySeconds appropriately.
+
+##### NOTE 
+Exit code 137 signals that the process was killed by an external signal (exit code is 128 + 9 (SIGKILL). Likewise, exit code 143 corresponds to 128 + 15 (SIGTERM)
+
+But for a better liveness check, you’d configure the probe to perform requests on a specific URL path (/health, for example) and have the app perform an internal status check of all the vital components running inside the app to ensure none of them has died or is unresponsive.
+TIP: Make sure the /health HTTP endpoint doesn’t require authentication; otherwise the probe will always fail, causing your container to be restarted indefinitely.
+
+
+## An amazing tip for preventing Kubernetes Cascade delete
+
+When deleting a ReplicationController with kubectl delete, you can keep its pods running by passing the --cascade=false option to the command. 
+```
+kubectl delete rc kubia-rc --cascade=false
+```
