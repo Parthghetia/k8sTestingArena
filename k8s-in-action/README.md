@@ -153,3 +153,194 @@ When deleting a ReplicationController with kubectl delete, you can keep its pods
 ```
 kubectl delete rc kubia-rc --cascade=false
 ```
+
+#### ReplicaSets
+##### Replication Controller vs ReplicaSets
+A single ReplicationController can’t match pods with the label env=production and those with the label env=devel at the same time. It can only match either pods with the env=production label or pods with the env=devel label. But a single ReplicaSet can match both sets of pods and treat them as a single group.
+Similarly, a ReplicationController can’t match pods based merely on the presence of a label key, regardless of its value, whereas a ReplicaSet can. For example, a ReplicaSet can match all pods that include a label with the key env, whatever its actual value is (you can think of it as env=*).
+
+##### ReplicaSets - A little deep dive
+You can add additional expressions to the selector. As in the example, each expression must contain a key, an operator, and possibly (depending on the operator) a list of values. You’ll see four valid operators:
+- In—Label’s value must match one of the specified values.
+- NotIn—Label’s value must not match any of the specified values.
+- Exists—Pod must include a label with the specified key (the value isn’t import-
+ant). When using this operator, you shouldn’t specify the values field.
+- DoesNotExist—Pod must not include a label with the specified key. The values
+property must not be specified.
+If you specify multiple expressions, all those expressions must evaluate to true for the selector to match a pod. If you specify both matchLabels and matchExpressions, all the labels must match and all the expressions must evaluate to true for the pod to match the selector.
+
+Example code below:
+```yaml
+apiVersion: apps/v1beta2
+kind: ReplicaSet
+metadata:
+  name: kubia
+spec:
+  replicas: 3
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+         - kubia
+  template:
+    metadata:
+      labels:
+        app: kubia
+    spec:
+      containers:
+      - name: kubia
+        image: parthghetia/kubia
+```
+
+### Jobs
+
+This creates one or more pods that will try to execute the required commands specified in the job manifest and will keep the pods running until this is not done. Once the task is complete the pods are terminated
+
+In case of a failure in the job the job can be configured to restart or do some kind of action
+
+An example of such a job would be if you had data stored somewhere and you needed to transform and export it somewhere. You’re going to emulate this by running a container image built on top of the busybox image, which invokes the sleep command for two minutes.
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kubia-job
+spec:
+  template:
+    metadata:
+      labels:
+        app: kubia-job
+    spec:
+      containers:
+      - name: main
+        image: luksa/batch-job
+      restartPolicy: OnFailure
+```
+
+You need to explicitly define the RestartPolicy always because jobs are not meant to run indefinitely. This is what prevents a container from restarting when the job is completed.
+
+#### Running multiple instances in a Job
+
+Jobs maybe configured to create more than one pod instance and run them parallel or sequentially. This is done by setting the completions and the parallelism properties in the Job spec.
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: multi-completion-batch-job
+spec:
+  completions: 5
+  template:
+#Setting completions to 5 makes this Job run five pods sequentially.
+```
+This Job will run five pods one after the other. It initially creates one pod, and when the pod’s container finishes, it creates the second pod, and so on, until five pods complete successfully. If one of the pods fails, the Job creates a new pod, so the Job may create more than five pods overall.
+
+#### Running job pods in parallel
+
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: multi-completion-batch-job
+spec:
+  completions: 5
+  parallelism: 2
+  template:
+```
+By setting parallelism to 2, the Job creates two pods and runs them in parallel:
+
+As soon as one of them finishes, the Job will run the next pod, until five pods finish successfully.
+You can even change a Job’s parallelism property while the Job is running. This is similar to scaling a ReplicaSet or ReplicationController, and can be done with the kubectl scale command:
+```
+$ kubectl scale job multi-completion-batch-job --replicas 3
+job "multi-completion-batch-job" scaled
+```
+#### Limiting the time allowed for a Job pod to complete
+
+A pod’s time can be limited by setting the activeDeadlineSeconds property in the pod spec. If the pod runs longer than that, the system will try to terminate it and will mark the Job as failed.
+NOTE You can configure how many times a Job can be retried before it is marked as failed by specifying the spec.backoffLimit field in the Job manifest. If you don't explicitly specify it, it defaults to 6.
+
+## Cron Jobs
+
+Batch jobs that need to be run at a specific time in the future, or repeatedly.
+
+```yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: batch-job-every-fifteen-mins
+spec:
+  schedule: "0,5,10,15 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: periodic-batch-job
+        spec:
+          containers:
+            - name: main
+              image: luksa/batch-job
+          restartPolicy: OnFailure
+```
+Pretty self explanatory stuff. You can use online tools to configure a cron job and when to run it. And the online tool will tell you.
+
+It may happen that the Job or pod is created and run relatively late. You may have a hard requirement for the job to not be started too far over the scheduled time. In that case, you can specify a deadline by specifying the startingDeadlineSeconds field in the CronJob specification
+```yaml
+apiVersion: batch/v1beta1
+kind: CronJob
+spec:
+  schedule: "0,15,30,45 * * * *"
+  startingDeadlineSeconds: 15
+```
+One of the times the job is supposed to run is 10:30:00. If it doesn’t start by 10:30:15 for whatever reason, the job will not run and will be shown as Failed.
+In normal circumstances, a CronJob always creates only a single Job for each execution configured in the schedule, but it may happen that two Jobs are created at the same time, or none at all. To combat the first problem, your jobs should be idempotent (running them multiple times instead of once shouldn’t lead to unwanted results). For the second problem, make sure that the next job run performs any work that should have been done by the previous (missed) run.
+
+
+## Services
+
+###### Tip: Remotely executing commands in runnning containers
+```
+kubectl exec kubia-rc-2g7c2 -- curl -s http://10.120.0.244
+You've hit kubia-rc-rkzcc
+```
+The double dash (--) in the command signals the end of command options for kubectl. Everything after the double dash is the command that should be executed inside the pod. Using the double dash isn’t necessary if the command has no arguments that start with a dash. But in your case, if you don’t use the double dash there, the -s option would be interpreted as an option for kubectl exec and would result in the following strange and highly misleading error:
+```
+$ kubectl exec kubia-7nog1 curl -s http://10.111.249.153
+The connection to the server 10.111.249.153 was refused – did you
+     specify the right host or port?
+```
+
+A service load balances across different pods but however if sometimes you don't want the load balancing and just want the external service to hit only one pod in that case you can use session affinity like so:
+```yaml
+apiVersion: v1
+kind: Service
+spec:
+  sessionAffinity: ClientIP
+```
+This makes the service proxy redirect all requests originating from the same client IP to the same pod
+
+#### EXPOSING MULTIPLE PORTS IN THE SAME SERVICE
+Your service exposes only a single port, but services can also support multiple ports. For example, if your pods listened on two ports—let’s say 8080 for HTTP and 8443 for HTTPS—you could use a single service to forward both port 80 and 443 to the pod’s ports 8080 and 8443. Using a single, multi-port service exposes all the service’s ports through a single cluster IP.
+NOTE: When creating a service with multiple ports, you must specify a name for each port.
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+name: kubia
+spec: ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  - name: https
+port: 443
+    targetPort: 8443
+  selector:
+app: kubia
+
+#The label selector always applies to the whole service.
+```
+You can also use named ports. Same shit but just change with name in stead of number. Specify the name in the pod definition and use it in the service. Can be skipped but helpful if you have non-famous ports.
+
+Also helps if you sometime change the ports. You just define in one place and that's it
+

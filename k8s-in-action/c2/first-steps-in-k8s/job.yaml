@@ -1,0 +1,14 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kubia-job
+spec:
+  template:
+    metadata:
+      labels:
+        app: kubia-job
+    spec:
+      containers:
+      - name: main
+        image: luksa/batch-job
+      restartPolicy: OnFailure

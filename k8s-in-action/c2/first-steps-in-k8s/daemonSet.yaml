@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kubia-ds
+spec:
+  selector:
+    matchLabels:
+      app: kubia-ds
+  template:
+    metadata:
+      labels: 
+        app: kubia-ds
+    spec:
+      nodeSelector:
+        disk: ssd
+      containers:
+      - name: main
+        image: parthghetia/kubia
