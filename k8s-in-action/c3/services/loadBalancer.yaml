@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: lb-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: kubia-rc
+  ports:
+  - port: 80
+    targetPort: 8080
+
