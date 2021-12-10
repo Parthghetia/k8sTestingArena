@@ -301,3 +301,38 @@ Similarly, you can use an Ingress to map to different services based on the host
 
 #### Configuring Ingress to handle TLS traffic
 
+##### Creating a TLS cert for ingress
+- When a client opens a TLS connection to the ingress controller, it terminates the TLS connection.
+- The communication between the client and controller is encrypted, whereas the communication between controller and backend pod isn't
+- The application running in the pod doesn't need to support TLS. For e.g: If the pods runs a web server, it can accept only HTTP traffic and let the ingress controller take care of everything related to TLS
+- To enable the controller to do that, you need to attach a certificate and a private key to the ingress. The two need to be stored in a k8s secret resource, which is then referenced in the ingress manifest
+
+##### STEPS
+1. Create a private key and cert -> Create a secret to store this
+```
+openssl genrsa -out tls.key 2048                                                       
+Generating RSA private key, 2048 bit long modulus
+.....+++
+.....................................+++
+e is 65537 (0x10001)
+pa6105074@mothership: services git:(master) ✗ openssl req -new -x509 -key tls.key -out tls.cert -days 360 -subj /CN=kubia.example.com
+pa6105074@mothership: services git:(master) ✗ kubectl create secret tls tls-secret --cert=tls.cert --key tls.key
+```
+
+After this is done apply ingress-http.yaml. Can be confirmed as shown below:
+```
+curl -v -k https://kubia.example.com
+*   Trying 34.102.190.238...
+* TCP_NODELAY set
+* Connected to kubia.example.com (34.102.190.238) port 443 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: /etc/ssl/cert.pem
+  CApath: none
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to kubia.example.com:443 
+* Closing connection 0
+curl: (35) LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to kubia.example.com:443
+```
+Ingress resources at the time of writing of the book, only support HTTP/HTTPS load balancing, support for L4 load balancing coming soon. Gotta check if its here or not
