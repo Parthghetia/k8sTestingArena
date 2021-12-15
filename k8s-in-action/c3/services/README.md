@@ -336,3 +336,44 @@ curl -v -k https://kubia.example.com
 curl: (35) LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to kubia.example.com:443
 ```
 Ingress resources at the time of writing of the book, only support HTTP/HTTPS load balancing, support for L4 load balancing coming soon. Gotta check if its here or not
+
+
+#### Signalling when a pod is ready to accept connections - Readiness Probes
+
+Readiness probes are invoked periodically and determines whether the specific pod should receive client requests or not. When a container's readiness probe returns success, it's signalling that the container is ready to accept requests
+
+When a container is started, Kubernetes can be configured to wait for a configurable amount of time to pass before performing the first readiness check. After that, it invokes the probe periodically and acts based on the result of the readiness probe. If a pod reports that it’s not ready, it’s removed from the service. If the pod then becomes ready again, it’s re-added.
+
+Unlike liveness probes, if a container fails the readiness check, it won’t be killed or restarted. This is an important distinction between liveness and readiness probes. Liveness probes keep pods healthy by killing off unhealthy containers and replacing them with new, healthy ones, whereas readiness probes make sure that only pods that are ready to serve requests receive them. This is mostly necessary during container start up, but it’s also useful after the container has been running for a while. (Achieved by removing the pods from being one of the endpoints in a case with a service)
+
+##### Types of Readiness Probes
+
+Like liveness probes, three types of readiness probes exist:
+ An Exec probe, where a process is executed. The container’s status is deter- mined by the process’ exit status code.
+ An HTTP GET probe, which sends an HTTP GET request to the container and the HTTP status code of the response determines whether the container is ready or not.
+ A TCP Socket probe, which opens a TCP connection to a specified port of the container. If the connection is established, the container is considered ready.
+
+##### Adding a readines probe to a pod
+
+```yaml
+containers:
+  - name: kubia
+    image: parthghetia/kubia
+    readinessProbe:
+      exec:
+        command:
+          - ls
+          - /var/ready
+```
+So if you have a file /ready in the pod. The readiness probes will pass, if not this will fail. You'll see 0/1 on the ready status.
+
+**TIP** If you want to add or remove a pod from a service manually, add enabled=true as a label to your pod and to the label selector of your service. Remove the label when you want to remove the pod from the service.
+
+**ALWAYS DEFINE A READINESS PROBE**
+Before we conclude this section, there are two final notes about readiness probes that I need to emphasize. First, if you don’t add a readiness probe to your pods, they’ll become service endpoints almost immediately. If your application takes too long to start listening for incoming connections, client requests hitting the service will be forwarded to the pod while it’s still starting up and not ready to accept incoming connections. Clients will therefore see “Connection refused” types of errors.
+**TIP** You should always define a readiness probe, even if it’s as simple as send- ing an HTTP request to the base URL. DON'T INCLUDE POD SHUTDOWN LOGIC INTO YOUR READINESS PROBES
+
+
+#### CREATING A HEADLESS SERVICE
+Setting the clusterIP field in a service spec to None makes the service headless, as Kubernetes won’t assign it a cluster IP through which clients could connect to the pods backing it. Use svcHeadless.yaml to do so. You’ll see it has no cluster IP and its endpoints include (part of)
+the pods matching its pod selector. I say “part of” because your pods contain a readiness probe, so only pods that are ready will be listed as endpoints of the service.
