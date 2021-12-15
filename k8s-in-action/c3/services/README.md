@@ -374,6 +374,49 @@ Before we conclude this section, there are two final notes about readiness probe
 **TIP** You should always define a readiness probe, even if it’s as simple as send- ing an HTTP request to the base URL. DON'T INCLUDE POD SHUTDOWN LOGIC INTO YOUR READINESS PROBES
 
 
-#### CREATING A HEADLESS SERVICE
+#### Creating a headless service
 Setting the clusterIP field in a service spec to None makes the service headless, as Kubernetes won’t assign it a cluster IP through which clients could connect to the pods backing it. Use svcHeadless.yaml to do so. You’ll see it has no cluster IP and its endpoints include (part of)
 the pods matching its pod selector. I say “part of” because your pods contain a readiness probe, so only pods that are ready will be listed as endpoints of the service.
+
+#### Discovering pods through DNS
+To  perform  DNS-related  actions,  you  can  use  the  tutum/dnsutils  container image, which is available on Docker Hub and contains both the nslookup and the dig binaries. This is how you would run the pod without creating a manifest for this one
+```
+kubectl run dnsutils --image=tutum/dnsutils --generator=run-pod/v1 --command -- sleep infinity
+pod "dnsutils" created
+```
+Using the newly created pod to perform an nslookup
+```
+$ kubectl exec dnsutils nslookup kubia-headless
+...
+Name:    kubia-headless.default.svc.cluster.local
+Address: 10.108.1.4 
+Name:    kubia-headless.default.svc.cluster.local
+Address: 10.108.2.5
+```
+The two IPs that it returns are the two IPs of the pods that are running the app with the selector kubia. This is different from what DNS would return for a regular service, where the returned IP would be a service cluster IP
+
+Although headless services may seem different from regular services, they aren’t that different  from  the  clients’  perspective.  Even  with  a  headless  service,  clients  can  connect to its pods by connecting to the service’s DNS name, as they can with regular services.  But  with  headless  services,  because  DNS  returns  the  pods’  IPs,  clients  connect directly to the pods, instead of through the service proxy. 
+
+**NOTE** A headless services still provides load balancing across pods, but through the DNS round-robin mechanism instead of through the service proxy
+
+#### Discovering all pods even those that aren't ready
+You’ve  seen  that  only  pods  that  are  ready  become  endpoints  of  services.  But sometimes you want to use the service discovery mechanism to find all pods matching the service’s label selector, even those that aren’t ready. Luckily, you don’t have to resort to querying the Kubernetes API server. You can use the DNS lookup mechanism to find even those unready pods. To tell Kubernetes you want all pods added to a service, regardless of the pod’s readiness status, you must add the following annotation to the service:
+```
+kind: Service
+metadata:
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+```
+**WARNING** As the annotation name suggests, as I’m writing this, this is an alpha feature. The Kubernetes Service API already supports a new service spec field called publishNotReadyAddresses, which will replace the tolerate-unready-endpoints annotation. In Kubernetes version 1.9.0, the field is not honored yet (the annotation is what determines whether unready endpoints are included in the DNS or not). Check the documentation to see whether that’s changed.
+
+#### Troubleshooting services guidelines
+When you’re unable to access your pods through the service, you should start by going through the following list:
+
+- First,  make  sure  you’re  connecting  to  the  service’s  cluster  IP  from  within  the cluster, not from the outside.
+- Don’t  bother  pinging  the  service  IP  to  figure  out  if  the  service  is  accessible (remember, the service’s cluster IP is a virtual IP and pinging it will never work).
+- If  you’ve  defined  a  readiness  probe,  make  sure  it’s  succeeding;  otherwise  the pod won’t be part of the service.
+- To confirm that a pod is part of the service, examine the corresponding Endpoints object with kubectl get endpoints.
+- If you’re trying to access the service through its FQDN or a part of it (for example,  myservice.mynamespace.svc.cluster.local  or  myservice.mynamespace)  and it doesn’t work, see if you can access it using its cluster IP instead of the FQDN.
+- Check  whether  you’re  connecting  to  the  port  exposed  by  the  service  and  not the target port.
+- Try connecting to the pod IP directly to confirm your pod is accepting connections on the correct port.
+- If you can’t even access your app through the pod’s IP, make sure your app isn’t only binding to localhost.
