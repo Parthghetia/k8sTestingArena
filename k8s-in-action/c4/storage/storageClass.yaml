@@ -1,0 +1,8 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast
+provisioner: kubernetes.io/gce-pd #the volume plugin to use for provisioning PVs
+parameters:
+  type: pd-ssd # the paramaters passed to the provisioner
+  zone: us-west1-a
