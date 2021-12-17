@@ -1,3 +1,8 @@
+- [Build a simple node app and package it using Docker](#build-a-simple-node-app-and-package-it-using-docker)
+- [Stuff to check after](#stuff-to-check-after)
+- [Pushing an image to the docker registry or any other registries](#pushing-an-image-to-the-docker-registry-or-any-other-registries)
+
+
 Build a simple node app and package it using Docker
 ==================
 Run the following command to build the app

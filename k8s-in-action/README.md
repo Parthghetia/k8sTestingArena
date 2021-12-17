@@ -1,3 +1,25 @@
+- [Handy Tips In K8s and some pod labelling](#handy-tips-in-k8s-and-some-pod-labelling)
+- [Labels](#labels)
+    - [Listing pods using a label selector](#listing-pods-using-a-label-selector)
+  - [Check out the difference in output from the above usage of label selectors](#check-out-the-difference-in-output-from-the-above-usage-of-label-selectors)
+    - [Listing pods that don't have that particular label](#listing-pods-that-dont-have-that-particular-label)
+    - [More Labelling Magic](#more-labelling-magic)
+  - [Annotations](#annotations)
+  - [Tip](#tip)
+    - [Liveness Probes](#liveness-probes)
+  - [Breaking down a liveness probe restart](#breaking-down-a-liveness-probe-restart)
+    - [NOTE](#note)
+  - [An amazing tip for preventing Kubernetes Cascade delete](#an-amazing-tip-for-preventing-kubernetes-cascade-delete)
+  - [ReplicaSets](#replicasets)
+    - [Replication Controller vs ReplicaSets](#replication-controller-vs-replicasets)
+    - [ReplicaSets - A little deep dive](#replicasets---a-little-deep-dive)
+    - [Jobs](#jobs)
+  - [Running multiple instances in a Job](#running-multiple-instances-in-a-job)
+  - [Running job pods in parallel](#running-job-pods-in-parallel)
+  - [Limiting the time allowed for a Job pod to complete](#limiting-the-time-allowed-for-a-job-pod-to-complete)
+  - [Cron Jobs](#cron-jobs)
+
+
 Handy Tips In K8s and some pod labelling
 ==================
 Use the kubectl explain command when building a manifest. This shit comes in handy
