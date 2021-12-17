@@ -274,7 +274,7 @@ volumeBindingMode: Immediate
 ```
 If you look closely toward the top of the listing, the storage class definition includes an annotation, which makes this the default storage class. The default storage class is what’s used to dynamically provision a PersistentVolume if the PersistentVolumeClaim doesn’t explicitly say which storage class to use.
 
-**##### FORCING A PERSISTENTVOLUMECLAIM TO BE BOUND TO ONE OF THE PRE-PROVISIONED PERSISTENT VOLUMES**
+##### **FORCING A PERSISTENTVOLUMECLAIM TO BE BOUND TO ONE OF THE PRE-PROVISIONED PERSISTENT VOLUMES**
 This finally brings us to why you set storageClassName to an empty string (when you wanted the PVC to bind to the PV you’d provisioned manually). Let me repeat the relevant lines of that PVC definition here:
 If you hadn’t set the storageClassName attribute to an empty string, the dynamic volume provisioner would have provisioned a new PersistentVolume, despite there being an appropriate pre-provisioned PersistentVolume. At that point, I wanted to demonstrate how a claim gets bound to a manually pre-provisioned PersistentVolume. I didn’t want the dynamic provisioner to interfere.
 
