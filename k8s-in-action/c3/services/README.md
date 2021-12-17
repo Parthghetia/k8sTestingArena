@@ -1,6 +1,6 @@
 ## Services
 
-###### Tip: Remotely executing commands in runnning containers
+#### Tip: Remotely executing commands in runnning containers
 ```
 kubectl exec kubia-rc-2g7c2 -- curl -s http://10.120.0.244
 You've hit kubia-rc-rkzcc
@@ -80,7 +80,7 @@ kubia-rc   ClusterIP   10.120.0.244   <none>        80/TCP    22h
 ```
 Two services are defined in your cluster: the kubernetes and the kubia service (you saw this earlier with the kubectl get svc command); consequently, two sets of service related environment variables are in the list. Among the variables that pertain to the kubia service you created at the beginning of the chapter, you’ll see the KUBIA_SERVICE _HOST and the KUBIA_SERVICE_PORT environment variables, which hold the IP address and port of the kubia service, respectively.
 
-###### NOTE: 
+#### NOTE: 
 Turning back to the frontend-backend example we started this chapter with, when you have a frontend pod that requires the use of a backend database server pod, you can expose the backend pod through a service called backend-database and then have the frontend pod look up its IP address and port through the environment vari- ables BACKEND_DATABASE_SERVICE_HOST and BACKEND_DATABASE_SERVICE_PORT.
 
 ### How services are discovered through DNS
@@ -189,13 +189,13 @@ Ways to expose your services externally:
 - Setting the service type to LoadBalancer, an extension of the NodePort type. This makes the service accessible through a dedicated load balancer, provisioned from the cloud infrastructure Kubernetes is running on. The load balancer redirects traffic to the node port across all the nodes. Clients connect to the service through the load balancer’s IP.
 - Creating an Ingress resource, a radically different mechanism for exposing multiple services through a single IP address. It operates at the HTTP level (network layer 7) and can thus offer more features than layer 4 services can. Details later
   
-##### Using a NodePort service
+### Using a NodePort service
 
 This just involves telling the cluster to reserve a port on every node and the external client that connects to that port will redirect traffic to the app. Take a look at the manifest.
 
 Not so good for multicluster nodes as routing can get complicated and would still need a good load balancer. Plus only one service per port and ports are limited to 30000 to 32767
 
-##### Using a Loadbalancer service
+### Using a Loadbalancer service
 
 Mostly highly supported on cloud services. In an Environment without this service, a Loadbalancer service would just act like a NodePort service. Check manifests
 
@@ -203,7 +203,7 @@ With this guy, you will always hit the same pod everytime. Reason being that unt
 
 BTW loadbalancers just use some randomly assigned ports making them a NodePort service too.
 
-##### Understanding the peculiarity of external connections
+### Understanding the peculiarity of external connections
 
 When an external client connects to a service through the node port the randomly chosen pod may or may not be running on the same node that received the connection. An additional network hop would then be required to reach the pod. You can prevent this additional hop by configuring the service to redirect external traffic to only the pods running on the same node that received the connection. This is done by setting the externalTrafficPolicy to Local in the service's spec field.
 
@@ -218,7 +218,7 @@ When a client sends an HTTP request to the ingress. the host and path in the req
 
 Ingresses operate at the App layer of the network stack and can provide features such as cookie based session affinity
 
-##### Understanding the requirements of an IngressController
+### Understanding the requirements of an IngressController
 
 To make ingress resources work an ingress controller needs to be running within the cluster. different distros have different levels of ingress controller like GKE uses its own HTTP load balancing features to provide ingress functionality
 
@@ -255,11 +255,11 @@ The IP is shown in the ADDRESS column.
 Once you know the IP, you can then either configure your DNS servers to resolve kubia.example.com to that IP or you can add the following line to /etc/hosts (or C:\windows\system32\drivers\etc\hosts on Windows):
         192.168.99.100    kubia.example.com
 
-##### Understanding how ingresses work
+### Understanding how ingresses work
 
 Client first performs a local DNS lookup and understands the external IP to hit. The DNS server thus returns the IP of the ingress controller. The client then sends an HTTP request to the ingress controller and specified the domain name in the header. The controller then determines which service the client is trying to hit, it then looked up the pods IP through the Endpoints object associated with the service, and forwarded the client's request to one of the pods.
 
-##### Exposing multiple services thorugh the same ingress
+### Exposing multiple services thorugh the same ingress
 **MAPPING DIFFERENT SERVICES TO DIFFERENT PATHS OF THE SAME HOST**
 ```yaml
 ...
@@ -301,13 +301,13 @@ Similarly, you can use an Ingress to map to different services based on the host
 
 #### Configuring Ingress to handle TLS traffic
 
-##### Creating a TLS cert for ingress
+### Creating a TLS cert for ingress
 - When a client opens a TLS connection to the ingress controller, it terminates the TLS connection.
 - The communication between the client and controller is encrypted, whereas the communication between controller and backend pod isn't
 - The application running in the pod doesn't need to support TLS. For e.g: If the pods runs a web server, it can accept only HTTP traffic and let the ingress controller take care of everything related to TLS
 - To enable the controller to do that, you need to attach a certificate and a private key to the ingress. The two need to be stored in a k8s secret resource, which is then referenced in the ingress manifest
 
-##### STEPS
+### STEPS
 1. Create a private key and cert -> Create a secret to store this
 ```
 openssl genrsa -out tls.key 2048                                                       
@@ -346,14 +346,14 @@ When a container is started, Kubernetes can be configured to wait for a configur
 
 Unlike liveness probes, if a container fails the readiness check, it won’t be killed or restarted. This is an important distinction between liveness and readiness probes. Liveness probes keep pods healthy by killing off unhealthy containers and replacing them with new, healthy ones, whereas readiness probes make sure that only pods that are ready to serve requests receive them. This is mostly necessary during container start up, but it’s also useful after the container has been running for a while. (Achieved by removing the pods from being one of the endpoints in a case with a service)
 
-##### Types of Readiness Probes
+### Types of Readiness Probes
 
 Like liveness probes, three types of readiness probes exist:
  An Exec probe, where a process is executed. The container’s status is deter- mined by the process’ exit status code.
  An HTTP GET probe, which sends an HTTP GET request to the container and the HTTP status code of the response determines whether the container is ready or not.
  A TCP Socket probe, which opens a TCP connection to a specified port of the container. If the connection is established, the container is considered ready.
 
-##### Adding a readines probe to a pod
+### Adding a readines probe to a pod
 
 ```yaml
 containers:

@@ -140,7 +140,7 @@ If you don’t set the initial delay, the prober will start probing the containe
 
 I’ve seen this on many occasions and users were confused why their container was being restarted. But if they’d used kubectl describe, they’d have seen that the container terminated with exit code 137 or 143, telling them that the pod was terminated externally. Additionally, the listing of the pod’s events would show that the container was killed because of a failed liveness probe. If you see this happening at pod startup, it’s because you failed to set initialDelaySeconds appropriately.
 
-##### NOTE 
+### NOTE 
 Exit code 137 signals that the process was killed by an external signal (exit code is 128 + 9 (SIGKILL). Likewise, exit code 143 corresponds to 128 + 15 (SIGTERM)
 
 But for a better liveness check, you’d configure the probe to perform requests on a specific URL path (/health, for example) and have the app perform an internal status check of all the vital components running inside the app to ensure none of them has died or is unresponsive.
@@ -155,11 +155,11 @@ kubectl delete rc kubia-rc --cascade=false
 ```
 
 #### ReplicaSets
-##### Replication Controller vs ReplicaSets
+### Replication Controller vs ReplicaSets
 A single ReplicationController can’t match pods with the label env=production and those with the label env=devel at the same time. It can only match either pods with the env=production label or pods with the env=devel label. But a single ReplicaSet can match both sets of pods and treat them as a single group.
 Similarly, a ReplicationController can’t match pods based merely on the presence of a label key, regardless of its value, whereas a ReplicaSet can. For example, a ReplicaSet can match all pods that include a label with the key env, whatever its actual value is (you can think of it as env=*).
 
-##### ReplicaSets - A little deep dive
+### ReplicaSets - A little deep dive
 You can add additional expressions to the selector. As in the example, each expression must contain a key, an operator, and possibly (depending on the operator) a list of values. You’ll see four valid operators:
 - In—Label’s value must match one of the specified values.
 - NotIn—Label’s value must not match any of the specified values.

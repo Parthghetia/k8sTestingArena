@@ -125,7 +125,7 @@ Volumes:
 - None of the above works when you want data to persist even when pods die. For that it must be stored on some type of NAS.
 - To learn about volumes that allow persisting data, you’ll create a pod that will run the MongoDB document-oriented NoSQL database
 
-##### Using a GCE persistent disk in a pod volume
+### Using a GCE persistent disk in a pod volume
 Automatic storage provision is now possible on GKE, but we will try this manually to learn the process better. Use the gcePersistentDiskVolume.yaml manifest to apply this.
 
 Before you apply the manifest, create the disk as shown below:
@@ -148,7 +148,7 @@ https://cloud.google.com/compute/docs/disks/add-persistent-disk#formatting
 ```
 Even if you delete the pod and recreate it. The mongo data will still be there. You can try that if needed to test. Check mongo commands to add data, and check if there after deleting the pod
 
-##### Using an awsElasticBlockStore
+### Using an awsElasticBlockStore
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -162,7 +162,7 @@ spec:
       fsType: ext4
     containers:
 ```
-##### Using an NFS volume
+### Using an NFS volume
 ```yaml
 volumes:
   - name: mongodb-data
@@ -195,7 +195,7 @@ spec:
 ```
 
 
-##### Recycling PVs
+### Recycling PVs
 Before you wrap up this section on PersistentVolumes, let’s do one last quick experi- ment. Delete the pod and the PersistentVolumeClaim:
 ```
         $ kubectl delete pod mongodb
@@ -258,7 +258,7 @@ mongodb                       europe-west1-d  1        pd-standard  READY
 ```
 Dynamic provisioning of PersistentVolume As you can see, the first persistent disk’s name suggests it was provisioned dynamically and its type shows it’s an SSD, as specified in the storage class you created earlier.
 
-##### Examining the default SC
+### Examining the default SC
 ```yaml
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -274,7 +274,7 @@ volumeBindingMode: Immediate
 ```
 If you look closely toward the top of the listing, the storage class definition includes an annotation, which makes this the default storage class. The default storage class is what’s used to dynamically provision a PersistentVolume if the PersistentVolumeClaim doesn’t explicitly say which storage class to use.
 
-##### **FORCING A PERSISTENTVOLUMECLAIM TO BE BOUND TO ONE OF THE PRE-PROVISIONED PERSISTENT VOLUMES**
+### **FORCING A PERSISTENTVOLUMECLAIM TO BE BOUND TO ONE OF THE PRE-PROVISIONED PERSISTENT VOLUMES**
 This finally brings us to why you set storageClassName to an empty string (when you wanted the PVC to bind to the PV you’d provisioned manually). Let me repeat the relevant lines of that PVC definition here:
 If you hadn’t set the storageClassName attribute to an empty string, the dynamic volume provisioner would have provisioned a new PersistentVolume, despite there being an appropriate pre-provisioned PersistentVolume. At that point, I wanted to demonstrate how a claim gets bound to a manually pre-provisioned PersistentVolume. I didn’t want the dynamic provisioner to interfere.
 

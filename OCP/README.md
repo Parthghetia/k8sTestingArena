@@ -46,7 +46,7 @@ elasticsearch-operator.4.6.0-202111191944   OpenShift Elasticsearch Operator   4
 ### Deploying a ClusterLogging instance
 Defines config of an instance of the cluster logging components and provides the config for the components
 
-##### Configuring Elasticsearch
+### Configuring Elasticsearch
 - For availability and scalability -> 3 cluster nodes; master, client, data. Additional nodes are provisioned as data nodes with client and data roles
   
 - Elasticsearch uses persistent or ephemeral storage. Use fast storage like SSD or dedicated local storage in stead of NFS, SMB or Amazon EBS. Consider logging requirements of the application in the cluster and size of Openshift node when sizing storage of elasticsearch
