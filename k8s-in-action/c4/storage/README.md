@@ -15,16 +15,16 @@ network storage.
 - configMap, secret, downwardAPI—Special types of volumes used to expose certain Kubernetes resources and cluster information to the pod.
 - persistentVolumeClaim—A way to use a pre- or dynamically provisioned persistent storage.
 
-#### emptyDir volume
+## emptyDir volume
 - Volume starts out as an empty dir
 - The volumes lifetime is tied to that of the pod, volumes contents are lost when the pod is deleted
 - Is specifically used for sharing files between containers running in the same pod.
 - Can also be used by a single container when data needs to be written temporarily to the disk
 
-#### Using an emptyDir volume in a pod
+## Using an emptyDir volume in a pod
 You’ll build a pod with only the web server container and the content agent and a single volume for the HTML. You’ll use Nginx as the web server and the UNIX fortune command to generate the HTML content. The fortune command prints out a random quote every time you run it. You’ll create a script that invokes the fortune command every 10 seconds and stores its output in index.html.
 
-#### Refresher on how to build Docker images - feel free to ignore
+## Refresher on how to build Docker images - feel free to ignore
 Building the fortune container image
 Here’s how to build the image. Create a new directory called fortune and then inside it, create a fortuneloop.sh shell script with the following contents:
 ```
@@ -51,7 +51,7 @@ After preparing both files, build and upload the image to Docker Hub with the fo
 $ docker build -t luksa/fortune .
 $ docker push luksa/fortune
 ```
-#### Seeing the pod in action
+## Seeing the pod in action
 Use the emptyDirVolume.yaml. You need to enable access to the pod, And you can port forward to do that. You can try the commands below to see what you get
 ```
 kubectl port-forward fortune 8080:80        
@@ -66,7 +66,7 @@ Cold hands, no gloves.
 pa6105074@mothership: parth-personal curl http://localhost:8080
 Today is the first day of the rest of the mess.
 ```
-#### Specifying the medium to use for the emptyDir
+## Specifying the medium to use for the emptyDir
 The emptyDir you used as the volume was created on the actual disk of the worker node hosting your pod, so its performance depends on the type of the node’s disks. But you can tell Kubernetes to create the emptyDir on a tmpfs filesystem (in memory instead of on disk). To do this, set the emptyDir’s medium to Memory like this:
 ```yaml
 volumes:
@@ -74,17 +74,17 @@ volumes:
 emptyDir:
       medium: Memory #This emptyDir’s files should be stored in memory.
 ```
-#### Using a Git Repo as the starting point for a volume
+## Using a Git Repo as the starting point for a volume
 - This is basically an emptyDir volume that gets populated by cloning a Git repo and checking out a specific revision when the pod is starting up (but b4 the containers are created)
   
 **NOTE** After the gitRepo volume is created, it isn’t kept in sync with the repo it’s referencing. The files in the volume will not be updated when you push additional commits to the Git repository. However, if your pod is managed by a ReplicationController, deleting the pod will result in a new pod being cre- ated and this new pod’s volume will then contain the latest commits.
 
-#### Running a web server pod serving files from a cloned git repo
+## Running a web server pod serving files from a cloned git repo
 Check out the gitrepo-volume-pod.yaml file. Has the manifest required to point to your git Repo. When you create the pod the volume is first initialized as an empty directory and then the git repo is cloned into it. If you hadn’t set the directory to . (dot), the repository would have been cloned into the kubia-website-example subdirectory, which isn’t what you want. You want the repo to be cloned into the root directory of your volume. Along with the repository, you also specified you want Kubernetes to check out whatever revision the master branch is pointing to at the time the volume is created. Use port-forward curl to hit it.
 
 To confirm that the files are not kept in sync you can change it on the git repo and see. And delete the pod to see the effect also
 
-#### Introducing sidecar containers
+## Introducing sidecar containers
 The Git sync process shouldn’t run in the same container as the Nginx web server, but in a second container: a sidecar container. A sidecar container is a container that augments the operation of the main container of the pod. You add a sidecar to a pod so you can use an existing container image instead of cramming additional logic into the main app’s code, which would make it overly complex and less reusable.
 To find an existing container image, which keeps a local directory synchronized with a Git repository, go to Docker Hub and search for “git sync.” You’ll find many images that do that. Then use the image in a new container in the pod from the previous example, mount the pod’s existing gitRepo volume in the new container, and configure the Git sync container to keep the files in sync with your Git repo. If you set everything up correctly, you should see that the files the web server is serving are kept in sync with your GitHub repo.
 
@@ -170,7 +170,7 @@ volumes:
       server: 1.2.3.4 #ip of the nfs server
       path: /some/path # the path exported by the server
 ```
-#### Claiming a PV by creating a PVC
+## Claiming a PV by creating a PVC
 Most things you already know. But good to know these:
 - RWO—ReadWriteOnce — Only a single node can mount the volume for reading and writing.
 - ROX—ReadOnlyMany — Multiple nodes can mount the volume for reading.
@@ -218,13 +218,13 @@ The claim’s status is shown as Pending. Interesting. When you created the clai
 The STATUS column shows the PersistentVolume as Released, not Available like before. Because you’ve already used the volume, it may contain data and shouldn’t be bound to a completely new claim without giving the cluster admin a chance to clean it up. Without this, a new pod using the same PersistentVolume could read the data stored there by the previous pod, even if the claim and pod were created in a different namespace (and thus likely belong to a different cluster tenant).
 
 
-#### PersistentVolume Reclaim policies
+## PersistentVolume Reclaim policies
 Two other possible reclaim policies exist: Recycle and Delete. The first one deletes the volume’s contents and makes the volume available to be claimed again. This way, the PersistentVolume can be reused multiple times by different PersistentVolumeClaims and different pods. The Delete policy, on the other hand, deletes the underlying storage. 
 
 A PersistentVolume only supports the Retain or Delete policies. Other PersistentVolume types may or may not support each of these options, so before creating your own PersistentVolume, be sure to check what reclaim policies are supported for the specific underlying storage you’ll use in the volume.
 **TIP** You can change the PersistentVolume reclaim policy on an existing PersistentVolume. For example, if it’s initially set to Delete, you can easily change it to Retain to prevent losing valuable data.
 
-#### Dynamic provisioning of PVs
+## Dynamic provisioning of PVs
 Cluster admin in stead of creating PVs can deploy Persistent Volume Provisioner and define one or more SCs to let users choose what type of PV they want. K8s includes provisioners for most popular cloud providers, so the admin doesn't always need to deploy a provisioner. In stead of the admin, pre-provisioning a bunch of PVs they need to define one or two more SCs and let the system create a new PV each timeone is requested through a PVC. Check storageClass.yaml and pvc-with-sc.yaml to get more details.
 
 A PersistentVolume only supports the Retain or Delete policies. Other Persistent- Volume types may or may not support each of these options, so before creating your own PersistentVolume, be sure to check what reclaim policies are supported for the specific underlying storage you’ll use in the volume.

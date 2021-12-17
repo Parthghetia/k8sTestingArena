@@ -1,6 +1,6 @@
 ## Services
 
-#### Tip: Remotely executing commands in runnning containers
+## Tip: Remotely executing commands in runnning containers
 ```
 kubectl exec kubia-rc-2g7c2 -- curl -s http://10.120.0.244
 You've hit kubia-rc-rkzcc
@@ -21,7 +21,7 @@ spec:
 ```
 This makes the service proxy redirect all requests originating from the same client IP to the same pod
 
-#### EXPOSING MULTIPLE PORTS IN THE SAME SERVICE
+## EXPOSING MULTIPLE PORTS IN THE SAME SERVICE
 Your service exposes only a single port, but services can also support multiple ports. For example, if your pods listened on two ports—let’s say 8080 for HTTP and 8443 for HTTPS—you could use a single service to forward both port 80 and 443 to the pod’s ports 8080 and 8443. Using a single, multi-port service exposes all the service’s ports through a single cluster IP.
 NOTE: When creating a service with multiple ports, you must specify a name for each port.
 ```yaml
@@ -80,7 +80,7 @@ kubia-rc   ClusterIP   10.120.0.244   <none>        80/TCP    22h
 ```
 Two services are defined in your cluster: the kubernetes and the kubia service (you saw this earlier with the kubectl get svc command); consequently, two sets of service related environment variables are in the list. Among the variables that pertain to the kubia service you created at the beginning of the chapter, you’ll see the KUBIA_SERVICE _HOST and the KUBIA_SERVICE_PORT environment variables, which hold the IP address and port of the kubia service, respectively.
 
-#### NOTE: 
+## NOTE: 
 Turning back to the frontend-backend example we started this chapter with, when you have a frontend pod that requires the use of a backend database server pod, you can expose the backend pod through a service called backend-database and then have the frontend pod look up its IP address and port through the environment vari- ables BACKEND_DATABASE_SERVICE_HOST and BACKEND_DATABASE_SERVICE_PORT.
 
 ### How services are discovered through DNS
@@ -114,7 +114,7 @@ options ndots:5
 ```
 You can hit your service by using the service’s name as the hostname in the requested URL. You can omit the namespace and the svc.cluster.local suffix because of how the DNS resolver inside each pod’s container is configured. Look at the /etc/resolv.conf file in the container above and you’ll understand
 
-#### Service endpoints
+## Service endpoints
 
 ```
 kdscr svc kubia-rc       
@@ -138,7 +138,7 @@ Endpoints is a list of IP addresses and ports exposing a SVC. Although the pod s
 
 When a client connects to a service the service proxy selects one of the IPs and Ports and redirects requests to the server listening on that location
 
-#### Manually configuring service endpoints
+## Manually configuring service endpoints
 If you create a service without a pod selector, then k8s will not create the endpoints to you and you have to create them manually like so
 ```yaml
 apiVersion: v1
@@ -163,7 +163,7 @@ subsets:
 
 if you later decide to migrate the service within pods in the cluster in stead of using an external service like so; you can add a selector to your service thus making them auto
 
-#### Creating an alias for an external service
+## Creating an alias for an external service
 In stead of going all manual in adding endpoints related to a svc. You can also use FQDN to reach to the external service. For this you need to create a service resource with the type set to ExternalName
 ```yaml
 apiVersion: v1
@@ -182,7 +182,7 @@ ExternalName services are implemeneted solely at the DNS level - a simple CNAME 
 
 **NOTE:**  A CNAME record points to a fully qualified domain name instead of a numeric IP address.
 
-#### Exposing Services to External Clients
+## Exposing Services to External Clients
 Ways to expose your services externally:
 
 - Setting the service type to NodePort—For a NodePort service, each cluster node opens a port on the node itself and redirects traffic received on that port to the underlying service. The service isn’t accessible only at the internal cluster IP and port, but also through a dedicated port on all nodes.
@@ -211,7 +211,7 @@ Usually, when clients inside the cluster connect to a service, the pods backing 
 The backing pod can’t see the actual client’s IP, which may be a problem for some applications that need to know the client’s IP. In the case of a web server, for example, this means the access log won’t show the browser’s IP.
 The Local external traffic policy described in the previous section affects the pres- ervation of the client’s IP, because there’s no additional hop between the node receiv- ing the connection and the node hosting the target pod (SNAT isn’t performed).
 
-#### Exposing services externally through an Ingress resource
+## Exposing services externally through an Ingress resource
 
 Each Loadbalancer service requires its own load balancer with its own public IP. While an ingress just requires just one resource even when providing access to dozens of services
 When a client sends an HTTP request to the ingress. the host and path in the request determine which service the request is forwarded to
@@ -299,7 +299,7 @@ spec: rules:
 Similarly, you can use an Ingress to map to different services based on the host in the HTTP request instead of (only) the path, as shown in the next listing.
 
 
-#### Configuring Ingress to handle TLS traffic
+## Configuring Ingress to handle TLS traffic
 
 ### Creating a TLS cert for ingress
 - When a client opens a TLS connection to the ingress controller, it terminates the TLS connection.
@@ -338,7 +338,7 @@ curl: (35) LibreSSL SSL_connect: SSL_ERROR_SYSCALL in connection to kubia.exampl
 Ingress resources at the time of writing of the book, only support HTTP/HTTPS load balancing, support for L4 load balancing coming soon. Gotta check if its here or not
 
 
-#### Signalling when a pod is ready to accept connections - Readiness Probes
+## Signalling when a pod is ready to accept connections - Readiness Probes
 
 Readiness probes are invoked periodically and determines whether the specific pod should receive client requests or not. When a container's readiness probe returns success, it's signalling that the container is ready to accept requests
 
@@ -374,11 +374,11 @@ Before we conclude this section, there are two final notes about readiness probe
 **TIP** You should always define a readiness probe, even if it’s as simple as send- ing an HTTP request to the base URL. DON'T INCLUDE POD SHUTDOWN LOGIC INTO YOUR READINESS PROBES
 
 
-#### Creating a headless service
+## Creating a headless service
 Setting the clusterIP field in a service spec to None makes the service headless, as Kubernetes won’t assign it a cluster IP through which clients could connect to the pods backing it. Use svcHeadless.yaml to do so. You’ll see it has no cluster IP and its endpoints include (part of)
 the pods matching its pod selector. I say “part of” because your pods contain a readiness probe, so only pods that are ready will be listed as endpoints of the service.
 
-#### Discovering pods through DNS
+## Discovering pods through DNS
 To perform DNS-related actions, you can use the tutum/dnsutils container image, which is available on Docker Hub and contains both the nslookup and the dig binaries. This is how you would run the pod without creating a manifest for this one
 ```
 kubectl run dnsutils --image=tutum/dnsutils --generator=run-pod/v1 --command -- sleep infinity
@@ -399,7 +399,7 @@ Although headless services may seem different from regular services, they aren�
 
 **NOTE** A headless services still provides load balancing across pods, but through the DNS round-robin mechanism instead of through the service proxy
 
-#### Discovering all pods even those that aren't ready
+## Discovering all pods even those that aren't ready
 You’ve seen that only pods that are ready become endpoints of services. But sometimes you want to use the service discovery mechanism to find all pods matching the service’s label selector, even those that aren’t ready. Luckily, you don’t have to resort to querying the Kubernetes API server. You can use the DNS lookup mechanism to find even those unready pods. To tell Kubernetes you want all pods added to a service, regardless of the pod’s readiness status, you must add the following annotation to the service:
 ```
 kind: Service
@@ -409,7 +409,7 @@ metadata:
 ```
 **WARNING** As the annotation name suggests, as I’m writing this, this is an alpha feature. The Kubernetes Service API already supports a new service spec field called publishNotReadyAddresses, which will replace the tolerate-unready-endpoints annotation. In Kubernetes version 1.9.0, the field is not honored yet (the annotation is what determines whether unready endpoints are included in the DNS or not). Check the documentation to see whether that’s changed.
 
-#### Troubleshooting services guidelines
+## Troubleshooting services guidelines
 When you’re unable to access your pods through the service, you should start by going through the following list:
 
 - First, make sure you’re connecting to the service’s cluster IP from within the cluster, not from the outside.

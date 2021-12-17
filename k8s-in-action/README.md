@@ -60,7 +60,7 @@ kubernetes-dashboard   kubernetes-dashboard-576cb95f94-blm5v                    
 parth-test             kubia-manual                                                 1/1     Running   0          29m 
 ```
 ### Listing pods using a label selector
-#### Check out the difference in output from the above usage of label selectors
+## Check out the difference in output from the above usage of label selectors
 ```
 kubectl get pods -l component -A
 NAMESPACE     NAME                                                         READY   STATUS    RESTARTS   AGE
@@ -103,7 +103,7 @@ If you want to select only pods running the beta release of the product catalog 
 Annotations can hold much larger pieces of information and are primarily meant to be used by tools. Certain annotations are automatically added to objects by Kubernetes, but others are added by users manually
 A great use of annotations is adding descriptions for each pod or other API object, so that everyone using the cluster can quickly look up information about each individ- ual object. For example, an annotation used to specify the name of the person who created the object can make collaboration between everyone working on the cluster much easier.
 
-#### Tip
+## Tip
 TIP To quickly switch to a different namespace, you can set up the following alias: alias kcd='kubectl config set-context $(kubectl config current- context) --namespace '. You can then switch between namespaces using kcd some-namespace.
 
 ### Liveness Probes
@@ -112,7 +112,7 @@ Kubernetes can probe a container using one of the three mechanisms:
 - A TCP Socket probe tries to open a TCP connection to the specified port of the container. If the connection is established successfully, the probe is successful. Otherwise, the container is restarted.
 - An Exec probe executes an arbitrary command inside the container and checks the command’s exit status code. If the status code is 0, the probe is successful. All other codes are considered failures.
 
-#### Breaking down a liveness probe restart
+## Breaking down a liveness probe restart
 
 ```
 kdscr po kubia-unhealthy | grep -i exit
@@ -154,7 +154,7 @@ When deleting a ReplicationController with kubectl delete, you can keep its pods
 kubectl delete rc kubia-rc --cascade=false
 ```
 
-#### ReplicaSets
+## ReplicaSets
 ### Replication Controller vs ReplicaSets
 A single ReplicationController can’t match pods with the label env=production and those with the label env=devel at the same time. It can only match either pods with the env=production label or pods with the env=devel label. But a single ReplicaSet can match both sets of pods and treat them as a single group.
 Similarly, a ReplicationController can’t match pods based merely on the presence of a label key, regardless of its value, whereas a ReplicaSet can. For example, a ReplicaSet can match all pods that include a label with the key env, whatever its actual value is (you can think of it as env=*).
@@ -220,7 +220,7 @@ spec:
 
 You need to explicitly define the RestartPolicy always because jobs are not meant to run indefinitely. This is what prevents a container from restarting when the job is completed.
 
-#### Running multiple instances in a Job
+## Running multiple instances in a Job
 
 Jobs maybe configured to create more than one pod instance and run them parallel or sequentially. This is done by setting the completions and the parallelism properties in the Job spec.
 ```yaml
@@ -235,7 +235,7 @@ spec:
 ```
 This Job will run five pods one after the other. It initially creates one pod, and when the pod’s container finishes, it creates the second pod, and so on, until five pods complete successfully. If one of the pods fails, the Job creates a new pod, so the Job may create more than five pods overall.
 
-#### Running job pods in parallel
+## Running job pods in parallel
 
 ```yaml
 apiVersion: batch/v1
@@ -255,7 +255,7 @@ You can even change a Job’s parallelism property while the Job is running. Thi
 $ kubectl scale job multi-completion-batch-job --replicas 3
 job "multi-completion-batch-job" scaled
 ```
-#### Limiting the time allowed for a Job pod to complete
+## Limiting the time allowed for a Job pod to complete
 
 A pod’s time can be limited by setting the activeDeadlineSeconds property in the pod spec. If the pod runs longer than that, the system will try to terminate it and will mark the Job as failed.
 NOTE You can configure how many times a Job can be retried before it is marked as failed by specifying the spec.backoffLimit field in the Job manifest. If you don't explicitly specify it, it defaults to 6.
