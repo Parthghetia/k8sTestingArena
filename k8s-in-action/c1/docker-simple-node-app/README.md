@@ -17,7 +17,7 @@ docker run --name kubia-container -p 8080:8080 -d kubia
 -d means detached from the console and the container will run in the background
 
 To check whether your stupid app is running
-
+´
 ```
 curl -v -k localhost:8080*   Trying ::1...
 * TCP_NODELAY set
