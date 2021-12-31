@@ -46,9 +46,9 @@ Use the host's pid namespace. Optional: Default to false.
 Labels
 ======
 Each pod is labeled with two labels:
-- app, which specifies which app, component, or microservice the pod belongs to.  rel, which shows whether the application running in the pod is a stable, beta,
-or a canary release.
-DEFINITION A canary release is when you deploy a new version of an applica- tion next to the stable version, and only let a small fraction of users hit the new version to see how it behaves before rolling it out to all users. This pre- vents bad releases from being exposed to too many users.
+- app, which specifies which app, component, or microservice the pod belongs to.
+- rel, which shows whether the application running in the pod is a stable, beta, or a canary release.
+DEFINITION A canary release is when you deploy a new version of an application next to the stable version, and only let a small fraction of users hit the new version to see how it behaves before rolling it out to all users. This prevents bad releases from being exposed to too many users.
 
 Check how labels are pretty awesome
 
@@ -99,17 +99,55 @@ kube-system   kube-proxy-gke-parth-playground-default-pool-809498a9-vl4c   1/1  
 ### Listing pods that don't have that particular label
 
 ```
-kubectl get pods -l component -A
-NAMESPACE     NAME                                                         READY   STATUS    RESTARTS   AGE
-kube-system   fluentbit-gke-552x4                                          2/2     Running   0          67m
-kube-system   fluentbit-gke-khr4v                                          2/2     Running   0          67m
-kube-system   fluentbit-gke-kvrc8                                          2/2     Running   0          67m
-kube-system   gke-metrics-agent-6j4z5                                      1/1     Running   0          67m
-kube-system   gke-metrics-agent-fmmn4                                      1/1     Running   0          67m
-kube-system   gke-metrics-agent-lwqd2                                      1/1     Running   0          67m
-kube-system   kube-proxy-gke-parth-playground-default-pool-809498a9-7d1n   1/1     Running   0          67m
-kube-system   kube-proxy-gke-parth-playground-default-pool-809498a9-hb1r   1/1     Running   0          67m
-kube-system   kube-proxy-gke-parth-playground-default-pool-809498a9-vl4c   1/1     Running   0          66m
+parth@Parth MINGW64 ~/OneDrive/Desktop/coding-arena/k8sTestingArena (master)
+$ kubectl get pods -l app!=kubia
+NAME                                  READY   STATUS    RESTARTS   AGE
+check-ip                              1/1     Running   0          44h
+dep1-555947d676-cddm8                 1/1     Running   0          8d
+dep1-555947d676-dww4b                 1/1     Running   0          8d
+dep1-555947d676-fw5hh                 1/1     Running   0          8d
+dep1-555947d676-h8jt4                 1/1     Running   0          8d
+dep1-555947d676-j6nc6                 1/1     Running   0          8d
+dep1-555947d676-m2w4n                 1/1     Running   0          8d
+dep1-555947d676-pq7mz                 1/1     Running   0          8d
+ds-1-4sstr                            1/1     Running   0          8d
+ds-1-n4vxw                            1/1     Running   0          8d
+ds-1-vbzwl                            1/1     Running   0          8d
+mypod-secrets-via-file                1/1     Running   0          3d17h
+nginx-app-fc7875d8-5dnfc              1/1     Running   0          8d
+nginx-app-fc7875d8-bw6d5              1/1     Running   0          8d
+nginx-app-fc7875d8-s9mv7              1/1     Running   0          8d
+nginx-app-reloaded-775d74f595-c6xs6   1/1     Running   0          3d18h
+nginx-app-reloaded-775d74f595-thl7n   1/1     Running   0          3d18h
+nginx-app-reloaded-775d74f595-zngcx   1/1     Running   0          3d18h
+
+parth@Parth MINGW64 ~/OneDrive/Desktop/coding-arena/k8sTestingArena (master)
+$ kubectl get pods --show-labels
+NAME                                  READY   STATUS    RESTARTS   AGE     LABELS
+check-ip                              1/1     Running   0          44h     run=check-ip
+dep1-555947d676-cddm8                 1/1     Running   0          8d      app=dep1,pod-template-hash=555947d676
+dep1-555947d676-dww4b                 1/1     Running   0          8d      app=dep1,pod-template-hash=555947d676
+dep1-555947d676-fw5hh                 1/1     Running   0          8d      app=dep1,pod-template-hash=555947d676
+dep1-555947d676-h8jt4                 1/1     Running   0          8d      app=dep1,pod-template-hash=555947d676
+dep1-555947d676-j6nc6                 1/1     Running   0          8d      app=dep1,pod-template-hash=555947d676
+dep1-555947d676-m2w4n                 1/1     Running   0          8d      app=dep1,pod-template-hash=555947d676
+dep1-555947d676-pq7mz                 1/1     Running   0          8d      app=dep1,pod-template-hash=555947d676
+ds-1-4sstr                            1/1     Running   0          8d      app=ds-1,controller-revision-hash=8646d56889,pod-template-generation=1
+ds-1-n4vxw                            1/1     Running   0          8d      app=ds-1,controller-revision-hash=8646d56889,pod-template-generation=1
+ds-1-vbzwl                            1/1     Running   0          8d      app=ds-1,controller-revision-hash=8646d56889,pod-template-generation=1
+kubia-deployment-7c9f8f88df-7fdss     1/1     Running   0          8d      app=kubia,pod-template-hash=7c9f8f88df
+kubia-deployment-7c9f8f88df-b4zfp     1/1     Running   0          8d      app=kubia,pod-template-hash=7c9f8f88df
+kubia-deployment-7c9f8f88df-h7mzv     1/1     Running   0          8d      app=kubia,pod-template-hash=7c9f8f88df
+kubia-dnbrf                           0/1     Running   0          8d      app=kubia
+kubia-m56g8                           0/1     Running   0          8d      app=kubia
+kubia-msjwq                           0/1     Running   0          8d      app=kubia
+mypod-secrets-via-file                1/1     Running   0          3d17h   <none>
+nginx-app-fc7875d8-5dnfc              1/1     Running   0          8d      app=nginx-app,pod-template-hash=fc7875d8
+nginx-app-fc7875d8-bw6d5              1/1     Running   0          8d      app=nginx-app,pod-template-hash=fc7875d8
+nginx-app-fc7875d8-s9mv7              1/1     Running   0          8d      app=nginx-app,pod-template-hash=fc7875d8
+nginx-app-reloaded-775d74f595-c6xs6   1/1     Running   0          3d18h   app=nginx-app-reloaded,pod-template-hash=775d74f595
+nginx-app-reloaded-775d74f595-thl7n   1/1     Running   0          3d18h   app=nginx-app-reloaded,pod-template-hash=775d74f595
+nginx-app-reloaded-775d74f595-zngcx   1/1     Running   0          3d18h   app=nginx-app-reloaded,pod-template-hash=775d74f595
 ```
 ### More Labelling Magic
 
