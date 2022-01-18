@@ -18,4 +18,4 @@ Instead of importing each file individually, you can even import all files from 
 ```
 $ kubectl create configmap my-config --from-file=/path/to/dir
 ```
-In this case, kubectl will create an individual map entry for each file in the specified directory, but only for files whose name is a valid ConfigMap key.j
+In this case, kubectl will create an individual map entry for each file in the specified directory, but only for files whose name is a valid ConfigMap key

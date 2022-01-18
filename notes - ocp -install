@@ -1,0 +1,18 @@
+```Changing interface with nmcli
+
+nmcli connection modify ens192 IPv4.address 172.16.10.251/24
+nmcli connection modify ens192 IPv4.gateway 172.16.10.10
+nmcli connection modify ens192 IPv4.dns 172.16.10.18
+nmcli connection modify ens192 IPv4.method manual
+nmcli connection up ens192
+ip addr
+ip route ```
+
+
+adding dns entries in 2 places
+
+rest vms on 10.10.30.x
+
+download software to nexus
+
+disconnected install ocp doc - steps to load the images into a private repo
